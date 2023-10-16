@@ -11,6 +11,7 @@ namespace Codium
     public partial class MainWindow : Window
     {
         private string? JsonFile = null;
+        private string connectionString = "";
         public MainWindow()
         {
             InitializeComponent();
