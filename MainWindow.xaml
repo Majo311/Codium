@@ -21,7 +21,7 @@
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
             <Label x:Name="lbl_File" Grid.Row="0" Grid.Column="0" Content="Please select File"/>
-            <Button x:Name="btn_OpenFile" Grid.Row="0" Grid.Column="1" Content="Select File"/>
+            <Button x:Name="btn_OpenFile" Grid.Row="0" Grid.Column="1" Content="Select File" Click="btn_OpenFile_Click"/>
             <Button x:Name="btn_SaveToDb" Grid.Row="0" Grid.Column="2" Content="Save to MsSql Db"/>
         </Grid>
         <Grid x:Name="Body" Grid.Row="1">
