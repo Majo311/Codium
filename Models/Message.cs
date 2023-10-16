@@ -7,6 +7,7 @@ namespace Codium.Models
     {
         public string MessageID { get; set; }
         public string GeneratedDate { get; set; }
-        public Event Event { get; set; }    
+        public int ProviderEventID { get; set; }
+        //public Event Event { get; set; }    
     }
 }
