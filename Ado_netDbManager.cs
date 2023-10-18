@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
+using System.Drawing;
 using System.IO;
 using System.Windows;
 
@@ -9,10 +11,10 @@ namespace Codium
     public class Ado_netDbManager
     {
         private static object _locker = new object();
-        private static Ado_netDbManager? instance=null;
-        public string? ConnectionString { get; private set; }=null;
-        private Ado_netDbManager(string connectionToServerString) 
-        { 
+        private static Ado_netDbManager? instance = null;
+        public string? ConnectionString { get; private set; } = null;
+        private Ado_netDbManager(string connectionToServerString)
+        {
             this.ConnectionString = connectionToServerString;
         }
         public static Ado_netDbManager GetInstance(string ConnnectionString)
@@ -56,37 +58,83 @@ namespace Codium
                 {
                     dbExists = false;
                 }
-               
+
             }
             return dbExists;
         }
 
-        public bool CreateDatabaseTables(string pathToDatabase)
+        public bool CreateTablesIfNotExist()
         {
-            bool isDbCreated = false;
-            String strQuery = "";
-            using (SqlConnection myConn = new SqlConnection("Server=localhost;Integrated security=SSPI"))
-            {
-                using (SqlCommand myCommand = new SqlCommand(strQuery, myConn))
-                {
-                    using (SqlDataAdapter myDataAdapter = new SqlDataAdapter())
-                    {
-                        try
-                        {
-                            myConn.Open();
+            bool isTablesCreated = false;
+            String checkTableCommandOds = "SELECT OBJECT_ID('[Codium_Data].[dbo].[Odds]', 'U') AS Result";                                                                    
+            String checkTableCommandEvents = "SELECT OBJECT_ID('[Codium_Data].[dbo].[Events]', 'U') AS Result";
+            String checkTableCommandMessages = "SELECT OBJECT_ID('[Codium_Data].[dbo].[Messages]', 'U') AS Result";
 
-                            isDbCreated = true;
-                        }
-                        catch (Exception ex)
+            String strQuerytblOdds = "create table [Codium_Data].[dbo].[Odds](" +
+                                                            "ProviderOddsID  int NOT NULL Primary key," +
+                                                            "Name nvarchar(MAX)," +
+                                                            "Rate float," +
+                                                            "Status nvarchar(10)," +
+                                                            "ProviderEventID int)";
+            String strQueryEvents = "create table [Codium_Data].[dbo].[Events](" +
+                                                            "ProviderEventID int Primary key," +
+                                                            "EventName nvarchar(MAX)," +
+                                                            "EventDate datetime," +
+                                                            "ProviderOddsID   int)";
+            String strQueryMessages = "create table [Codium_Data].[dbo].[Messages](" +
+                                                            "MessageID nvarchar(40) Primary key," +
+                                                            "GeneratedDate  datetime," +
+                                                            "ProviderEventID int)";
+
+
+            if (CreateTableIfNotExist(this.ConnectionString, checkTableCommandOds, strQuerytblOdds) &&
+                CreateTableIfNotExist(this.ConnectionString, checkTableCommandEvents, strQueryEvents) &&
+                CreateTableIfNotExist(this.ConnectionString, checkTableCommandMessages, strQueryMessages))
+            {
+                isTablesCreated = true;
+            }
+
+
+            return isTablesCreated;
+        }
+        private bool CreateTableIfNotExist(string ConectionString, string queryToCheck, string queryToCreate)
+        {
+            bool isTableCreated = false;
+            using (SqlConnection myConn = new SqlConnection(ConectionString))
+            {
+                try
+                {
+                    string OBJECT_ID = String.Empty;
+                    myConn.Open();
+                    using (SqlCommand checkDbCommand = new SqlCommand(queryToCheck, myConn))
+                    {
+                        using (SqlDataReader reader = checkDbCommand.ExecuteReader())
                         {
-                            isDbCreated = false;
+                            while (reader.Read())
+                            {
+                                OBJECT_ID = reader[0].ToString();
+                            }   
                         }
                     }
+                    if (String.IsNullOrEmpty(OBJECT_ID))// if table don't exist
+                    {
+                        using (SqlCommand myCommand = new SqlCommand(queryToCreate, myConn))
+                        {
+                            myCommand.ExecuteNonQuery();
+                        }
+                        isTableCreated = true;
+                    }
+                    else
+                        isTableCreated = true; 
+
                 }
+                catch (Exception ex)
+                {
+                    isTableCreated = false;
+                }
+                return isTableCreated;
             }
-           
-            return isDbCreated;
+
         }
-          
     }
 }

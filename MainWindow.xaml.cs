@@ -33,10 +33,8 @@ namespace Codium
 
         private void btn_SaveToDb_Click(object sender, RoutedEventArgs e)
         {
-            //check if db exist
-            //if not create
             Ado_netDbManager Ado_netDbManager= Ado_netDbManager.GetInstance(this.connectionString);
-            if(Ado_netDbManager.CreateDatabaseIfNotExist(database))
+            if(Ado_netDbManager.CreateDatabaseIfNotExist(database)&&Ado_netDbManager.CreateTablesIfNotExist())
             {
 
             }
