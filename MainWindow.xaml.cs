@@ -11,7 +11,8 @@ namespace Codium
     public partial class MainWindow : Window
     {
         private string? JsonFile = null;
-        private string connectionString = "";
+        private string connectionString = "Server=.\\SQLEXPRESS;Integrated security=SSPI;database=master";
+        private string database = "C:\\Codium_data.mdf";
         public MainWindow()
         {
             InitializeComponent();
@@ -28,6 +29,18 @@ namespace Codium
                     JsonFile=streamReader.ReadToEnd();   
                 }
             }
+        }
+
+        private void btn_SaveToDb_Click(object sender, RoutedEventArgs e)
+        {
+            //check if db exist
+            //if not create
+            Ado_netDbManager Ado_netDbManager= Ado_netDbManager.GetInstance(this.connectionString);
+            if(Ado_netDbManager.CreateDatabaseIfNotExist(database))
+            {
+
+            }
+
         }
     }
 }

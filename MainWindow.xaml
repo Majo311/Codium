@@ -22,7 +22,7 @@
             </Grid.RowDefinitions>
             <Label x:Name="lbl_File" Grid.Row="0" Grid.Column="0" Content="Please select File"/>
             <Button x:Name="btn_OpenFile" Grid.Row="0" Grid.Column="1" Content="Select File" Click="btn_OpenFile_Click"/>
-            <Button x:Name="btn_SaveToDb" Grid.Row="0" Grid.Column="2" Content="Save to MsSql Db"/>
+            <Button x:Name="btn_SaveToDb" Grid.Row="0" Grid.Column="2" Content="Save to MsSql Db" Click="btn_SaveToDb_Click"/>
         </Grid>
         <Grid x:Name="Body" Grid.Row="1">
             <DataGrid x:Name="dg_table" Grid.Row="1" d:ItemsSource="{d:SampleData ItemCount=5}"/>
