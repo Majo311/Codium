@@ -11,9 +11,15 @@ namespace Codium.Models
     public class Odd
     {
         public int ProviderOddsID { get; set; }
-        public int ProviderEventID { get; set; }
-        public string Name {  get; set; }
-        public float Rate {  get; set; }
-        public Status Status { get; set; }
+        public string OddsName {  get; set; }
+        public float OddsRate {  get; set; }
+        public string Status { get; set; }
+        public Odd(int ProviderOddsID, string OddsName, float OddsRate, string Status) 
+        { 
+            this.ProviderOddsID = ProviderOddsID;
+            this.OddsName = OddsName;
+            this.OddsRate = OddsRate;
+            this.Status = Status;
+        }
     }
 }

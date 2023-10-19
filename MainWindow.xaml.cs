@@ -1,6 +1,13 @@
-﻿using Microsoft.Win32;
+﻿using Codium.Models;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Formats.Asn1;
 using System.IO;
+using System.Linq;
 using System.Windows;
 
 namespace Codium
@@ -13,6 +20,8 @@ namespace Codium
         private string? JsonFile = null;
         private string connectionString = "Server=.\\SQLEXPRESS;Integrated security=SSPI;database=master";
         private string database = "C:\\Codium_data.mdf";
+        private List<Message> messages = new List<Message>();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -26,7 +35,12 @@ namespace Codium
             {
                 using (StreamReader streamReader = new StreamReader(openFileDialog.FileName))
                 {
-                    JsonFile=streamReader.ReadToEnd();   
+                    JsonFile=streamReader.ReadToEnd();
+                    JArray array = JsonConvert.DeserializeObject<JArray>(JsonFile)!;
+                    this.messages = (array).Select(x =>
+                    new Message(x["MessageID"].ToString(), x["GeneratedDate"].ToString(), Event: x["Event"].GetEvent())
+
+                    ).ToList();
                 }
             }
         }
