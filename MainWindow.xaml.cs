@@ -50,7 +50,7 @@ namespace Codium
             Ado_netDbManager Ado_netDbManager= Ado_netDbManager.GetInstance(this.connectionString);
             if(Ado_netDbManager.CreateDatabaseIfNotExist(database)&&Ado_netDbManager.CreateTablesIfNotExist())
             {
-
+                Ado_netDbManager.InsertMessages(this.messages);
             }
 
         }

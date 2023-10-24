@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.Drawing;
 using System.IO;
 using System.Windows;
+using System.Xml;
 
 namespace Codium
 {
@@ -75,15 +76,14 @@ namespace Codium
 
             String strQuerytblOdds = "create table [Codium_Data].[dbo].[Odds](" +
                                                             "ProviderOddsID  int NOT NULL Primary key," +
-                                                            "Name nvarchar(MAX)," +
-                                                            "Rate float," +
+                                                            "OddsName nvarchar(MAX)," +
+                                                            "OddsRate float," +
                                                             "Status nvarchar(10)," +
                                                             "ProviderEventID int)";
             String strQueryEvents = "create table [Codium_Data].[dbo].[Events](" +
                                                             "ProviderEventID int Primary key," +
                                                             "EventName nvarchar(MAX)," +
-                                                            "EventDate datetime," +
-                                                            "ProviderOddsID   int)";
+                                                            "EventDate datetime2)";
             String strQueryMessages = "create table [Codium_Data].[dbo].[Messages](" +
                                                             "MessageID nvarchar(40) Primary key," +
                                                             "GeneratedDate  datetime," +
@@ -96,8 +96,6 @@ namespace Codium
             {
                 isTablesCreated = true;
             }
-
-
             return isTablesCreated;
         }
         private bool CreateTableIfNotExist(string ConectionString, string queryToCheck, string queryToCreate)
@@ -142,10 +140,54 @@ namespace Codium
 
         public void InsertMessages(IList<Message> messages) 
         {
-            string insertQuery"";
+            string insertQuery="";
             using (SqlConnection myConn = new SqlConnection(this.ConnectionString))
             {
-
+                myConn.Open();
+                SqlTransaction sqlTran = myConn.BeginTransaction();
+                SqlCommand command = myConn.CreateCommand();
+                command.Transaction= sqlTran;
+                string x = "";
+                try
+                {
+                    DateTime eventDateTime;
+                    foreach (Message message in messages)
+                    {
+                        command.CommandText = "Insert into [Codium_Data].[dbo].[Messages](MessageID,GeneratedDate,ProviderEventID)" +
+                                              "Values('"+ message.MessageID+"','"+DateTime.Parse(message.GeneratedDate)+"','"+ message.Event.ProviderEventID+"')";
+                        command.ExecuteNonQuery();
+                        eventDateTime = new DateTime();
+                        command.CommandText = "Insert into [Codium_Data].[dbo].[Events](ProviderEventID,EventName,EventDate)" +
+                                              "Values('"+message.Event.ProviderEventID+"','"+ message.Event.EventName+"','"+ eventDateTime + "')";
+                        command.ExecuteNonQuery();
+                        
+                        foreach(Odd o in message.Event.OddsList)
+                        {
+                            command.CommandText = "Insert into [Codium_Data].[dbo].[Odds](ProviderOddsID,OddsName,OddsRate,Status,ProviderEventID)" +
+                                                  "Values('"+o.ProviderOddsID.ToString()+"','"+o.OddsName+"','"+
+                                                  string.Format(new System.Globalization.CultureInfo("en-GB"), "{0:F}", o.OddsRate) + "','"+o.Status+"','"+message.Event.ProviderEventID.ToString()+"')";
+                            command.ExecuteNonQuery();
+                        }  
+                    }
+                    sqlTran.Commit();
+                }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        // Attempt to roll back the transaction.
+                        sqlTran.Rollback();
+                    }
+                    catch (Exception exRollback)
+                    {
+                        // Throws an InvalidOperationException if the connection
+                        // is closed or the transaction has already been rolled
+                        // back on the server.
+                        Console.WriteLine(exRollback.Message);
+                    }
+                }
+                
+               
             }
         }
     }
