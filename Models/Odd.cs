@@ -11,6 +11,7 @@ namespace Codium.Models
     public class Odd
     {
         public int ProviderOddsID { get; set; }
+        public string MessageID { get; set; }
         public string OddsName {  get; set; }
         public float OddsRate {  get; set; }
         public string Status { get; set; }

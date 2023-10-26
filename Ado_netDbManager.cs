@@ -70,29 +70,30 @@ namespace Codium
         public bool CreateTablesIfNotExist()
         {
             bool isTablesCreated = false;
-            String checkTableCommandOds = "SELECT OBJECT_ID('[Codium_Data].[dbo].[Odds]', 'U') AS Result";                                                                    
-            String checkTableCommandEvents = "SELECT OBJECT_ID('[Codium_Data].[dbo].[Events]', 'U') AS Result";
             String checkTableCommandMessages = "SELECT OBJECT_ID('[Codium_Data].[dbo].[Messages]', 'U') AS Result";
+            String checkTableCommandEvents = "SELECT OBJECT_ID('[Codium_Data].[dbo].[Events]', 'U') AS Result";
+            String checkTableCommandOds = "SELECT OBJECT_ID('[Codium_Data].[dbo].[Odds]', 'U') AS Result";
+
+            String strQueryMessages = "create table [Codium_Data].[dbo].[Messages](" +
+                                                            "MessageID nvarchar(40) Primary key," +
+                                                            "GeneratedDate  datetime)";
+
+            String strQueryEvents = "create table [Codium_Data].[dbo].[Events](" +
+                                                "MessageID nvarchar(40) Primary key," +
+                                                "ProviderEventID int," +
+                                                "EventName nvarchar(MAX)," +
+                                                "EventDate datetime2)";
 
             String strQuerytblOdds = "create table [Codium_Data].[dbo].[Odds](" +
                                                             "ProviderOddsID  int NOT NULL Primary key," +
+                                                            "MessageID nvarchar(40) NOT NULL FOREIGN KEY REFERENCES dbo.Events(MessageID)," +
                                                             "OddsName nvarchar(MAX)," +
-                                                            "OddsRate float," +
-                                                            "Status nvarchar(10)," +
-                                                            "ProviderEventID int)";
-            String strQueryEvents = "create table [Codium_Data].[dbo].[Events](" +
-                                                            "ProviderEventID int Primary key," +
-                                                            "EventName nvarchar(MAX)," +
-                                                            "EventDate datetime2)";
-            String strQueryMessages = "create table [Codium_Data].[dbo].[Messages](" +
-                                                            "MessageID nvarchar(40) Primary key," +
-                                                            "GeneratedDate  datetime," +
-                                                            "ProviderEventID int)";
+                                                            "OddsRate float,"+
+                                                            "Status nvarchar(10))";
 
-
-            if (CreateTableIfNotExist(this.ConnectionString, checkTableCommandOds, strQuerytblOdds) &&
+            if (CreateTableIfNotExist(this.ConnectionString, checkTableCommandMessages, strQueryMessages) &&
                 CreateTableIfNotExist(this.ConnectionString, checkTableCommandEvents, strQueryEvents) &&
-                CreateTableIfNotExist(this.ConnectionString, checkTableCommandMessages, strQueryMessages))
+                CreateTableIfNotExist(this.ConnectionString, checkTableCommandOds, strQuerytblOdds))
             {
                 isTablesCreated = true;
             }
@@ -140,7 +141,6 @@ namespace Codium
 
         public void InsertMessages(IList<Message> messages) 
         {
-            string insertQuery="";
             using (SqlConnection myConn = new SqlConnection(this.ConnectionString))
             {
                 myConn.Open();
@@ -153,23 +153,31 @@ namespace Codium
                     DateTime eventDateTime;
                     foreach (Message message in messages)
                     {
-                        command.CommandText = "Insert into [Codium_Data].[dbo].[Messages](MessageID,GeneratedDate,ProviderEventID)" +
-                                              "Values('"+ message.MessageID+"','"+DateTime.Parse(message.GeneratedDate)+"','"+ message.Event.ProviderEventID+"')";
+                        command.CommandText = "Insert into [Codium_Data].[dbo].[Messages](MessageID,GeneratedDate)" +
+                                              "Values('"+ message.MessageID+"','"+DateTime.Parse(message.GeneratedDate)+"')";
                         command.ExecuteNonQuery();
                         eventDateTime = new DateTime();
-                        command.CommandText = "Insert into [Codium_Data].[dbo].[Events](ProviderEventID,EventName,EventDate)" +
-                                              "Values('"+message.Event.ProviderEventID+"','"+ message.Event.EventName+"','"+ eventDateTime + "')";
+                        command.CommandText = "Insert into [Codium_Data].[dbo].[Events](MessageID,ProviderEventID,EventName,EventDate)" +
+                                              "Values('"+ message.MessageID+"','"+message.Event.ProviderEventID+"','"+ message.Event.EventName+"','"+ eventDateTime + "')";
                         command.ExecuteNonQuery();
-                        
+                        string oddInsertQuery = "Insert into [Codium_Data].[dbo].[Odds](ProviderOddsID,MessageID,OddsName,OddsRate,Status) Values";
+                        int i= 0;
                         foreach(Odd o in message.Event.OddsList)
                         {
-                            command.CommandText = "Insert into [Codium_Data].[dbo].[Odds](ProviderOddsID,OddsName,OddsRate,Status,ProviderEventID)" +
-                                                  "Values('"+o.ProviderOddsID.ToString()+"','"+o.OddsName+"','"+
-                                                  string.Format(new System.Globalization.CultureInfo("en-GB"), "{0:F}", o.OddsRate) + "','"+o.Status+"','"+message.Event.ProviderEventID.ToString()+"')";
-                            command.ExecuteNonQuery();
-                        }  
+                            oddInsertQuery+= "('"+o.ProviderOddsID.ToString()+"', '"+
+                                                            message.MessageID+","+
+                                                            o.OddsName+"','"+
+                                                            string.Format(new System.Globalization.CultureInfo("en-GB"),"{0:F}", o.OddsRate)+"','"+
+                                                            o.Status+"')";
+                            if(i!=message.Event.OddsList.Count-1)
+                            oddInsertQuery += ",";
+                            i++;
+                        }
+                        command.CommandText = oddInsertQuery;
+                        command.ExecuteNonQuery();
+                        sqlTran.Commit();
                     }
-                    sqlTran.Commit();
+
                 }
                 catch (Exception ex)
                 {
