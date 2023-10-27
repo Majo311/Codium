@@ -17,9 +17,12 @@ namespace Codium
         private static object _locker = new object();
         private static Ado_netDbManager? instance = null;
         public string? ConnectionString { get; private set; } = null;
+
+        public bool WasDataInserted {  get; private set; }
         private Ado_netDbManager(string connectionToServerString)
         {
             this.ConnectionString = connectionToServerString;
+            this.WasDataInserted = false;
         }
         public static Ado_netDbManager GetInstance(string ConnnectionString)
         {
@@ -85,8 +88,9 @@ namespace Codium
                                                 "EventDate datetime2)";
 
             String strQuerytblOdds = "create table [Codium_Data].[dbo].[Odds](" +
-                                                            "ProviderOddsID  int NOT NULL Primary key," +
-                                                            "MessageID nvarchar(40) NOT NULL FOREIGN KEY REFERENCES dbo.Events(MessageID)," +
+                                                            "Id int NOt NULL IDENTITY(1,1) PRIMARY KEY," +
+                                                            "ProviderOddsID  int NOT NULL," +
+                                                            "MessageID nvarchar(40) NOT NULL FOREIGN KEY REFERENCES dbo.Events(MessageID) ON DELETE CASCADE ON UPDATE CASCADE," +
                                                             "OddsName nvarchar(MAX)," +
                                                             "OddsRate float,"+
                                                             "Status nvarchar(10))";
@@ -146,38 +150,33 @@ namespace Codium
                 myConn.Open();
                 SqlTransaction sqlTran = myConn.BeginTransaction();
                 SqlCommand command = myConn.CreateCommand();
-                command.Transaction= sqlTran;
-                string x = "";
                 try
                 {
                     DateTime eventDateTime;
                     foreach (Message message in messages)
                     {
+                        command.Transaction = sqlTran;
                         command.CommandText = "Insert into [Codium_Data].[dbo].[Messages](MessageID,GeneratedDate)" +
                                               "Values('"+ message.MessageID+"','"+DateTime.Parse(message.GeneratedDate)+"')";
                         command.ExecuteNonQuery();
                         eventDateTime = new DateTime();
-                        command.CommandText = "Insert into [Codium_Data].[dbo].[Events](MessageID,ProviderEventID,EventName,EventDate)" +
-                                              "Values('"+ message.MessageID+"','"+message.Event.ProviderEventID+"','"+ message.Event.EventName+"','"+ eventDateTime + "')";
+                        command.CommandText=("Insert into [Codium_Data].[dbo].[Events](MessageID,ProviderEventID,EventName,EventDate)" +
+                                              "Values('"+ message.MessageID+"','"+message.Event.ProviderEventID+"','"+ message.Event.EventName+"','"+ eventDateTime + "')");
                         command.ExecuteNonQuery();
-                        string oddInsertQuery = "Insert into [Codium_Data].[dbo].[Odds](ProviderOddsID,MessageID,OddsName,OddsRate,Status) Values";
-                        int i= 0;
-                        foreach(Odd o in message.Event.OddsList)
+                        foreach (Odd o in message.Event.OddsList)
                         {
-                            oddInsertQuery+= "('"+o.ProviderOddsID.ToString()+"', '"+
-                                                            message.MessageID+","+
-                                                            o.OddsName+"','"+
-                                                            string.Format(new System.Globalization.CultureInfo("en-GB"),"{0:F}", o.OddsRate)+"','"+
-                                                            o.Status+"')";
-                            if(i!=message.Event.OddsList.Count-1)
-                            oddInsertQuery += ",";
-                            i++;
+                            string oddInsertQuery = "Insert into [Codium_Data].[dbo].[Odds](ProviderOddsID,MessageID,OddsName,OddsRate,Status) Values";
+                            oddInsertQuery += "('" + o.ProviderOddsID + "','" +
+                                                     message.MessageID+"','"+
+                                                     o.OddsName + "','" + 
+                                                     string.Format(new System.Globalization.CultureInfo("en-GB"), "{0:F}", o.OddsRate) + "','" + 
+                                                     o.Status + "')";
+                            command.CommandText = oddInsertQuery;
+                            command.ExecuteNonQuery();
                         }
-                        command.CommandText = oddInsertQuery;
-                        command.ExecuteNonQuery();
-                        sqlTran.Commit();
                     }
-
+                    sqlTran.Commit();
+                    this.WasDataInserted = true;
                 }
                 catch (Exception ex)
                 {
@@ -193,6 +192,7 @@ namespace Codium
                         // back on the server.
                         Console.WriteLine(exRollback.Message);
                     }
+                    this.WasDataInserted = false;
                 }
                 
                
