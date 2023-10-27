@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Formats.Asn1;
 using System.IO;
 using System.Linq;
@@ -47,13 +48,18 @@ namespace Codium
 
         private void btn_SaveToDb_Click(object sender, RoutedEventArgs e)
         {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             Ado_netDbManager Ado_netDbManager= Ado_netDbManager.GetInstance(this.connectionString);
             if(Ado_netDbManager.CreateDatabaseIfNotExist(database)&&Ado_netDbManager.CreateTablesIfNotExist())
             {
                 if(!Ado_netDbManager.WasDataInserted)
                 {
                     Ado_netDbManager.InsertMessages(this.messages);
-                    MessageBox.Show("Data was inserted in Db or already there are to Db");
+                    stopwatch.Stop();
+                    TimeSpan ts = stopwatch.Elapsed;
+                    MessageBox.Show("Data was inserted to DB. It taked "+ts.Minutes.ToString()+":"+ts.Seconds+":"+ts.Milliseconds.ToString());
                 }
                 else
                 {
