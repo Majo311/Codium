@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Codium"
         mc:Ignorable="d"
-        Title="MainWindow" Height="750" Width="800">
+        Title="MainWindow" Height="200" Width="800">
     <Grid Name="MainGrid">
         <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
             <RowDefinition Height="40"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
@@ -24,9 +25,8 @@
             <Button x:Name="btn_OpenFile" Grid.Row="0" Grid.Column="1" Content="Select File" Click="btn_OpenFile_Click"/>
             <Button x:Name="btn_SaveToDb" Grid.Row="0" Grid.Column="2" Content="Save to MsSql Db" Click="btn_SaveToDb_Click"/>
         </Grid>
-        <Grid x:Name="Body" Grid.Row="1">
-            <DataGrid x:Name="dg_table" Grid.Row="1" d:ItemsSource="{d:SampleData ItemCount=5}"/>
+        <Grid x:Name="Body" Grid.Row="2">
+            <TextBlock x:Name="tb_output" HorizontalAlignment="Left" TextWrapping="Wrap"  VerticalAlignment="Top" Text=""/>
         </Grid>
-        
     </Grid>
 </Window>
