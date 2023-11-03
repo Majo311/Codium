@@ -76,12 +76,14 @@ namespace Codium
             {
                 if (!Ado_netDbManager.WasDataInserted)
                 {
-                    Ado_netDbManager.InsertMessagesAsync(this.messages);
-                    stopwatch.Stop();
-                    TimeSpan ts = stopwatch.Elapsed;
-                    MessageBox.Show("Data was inserted to DB. It taked " + ts.Minutes.ToString() + ":" + ts.Seconds + ":" + ts.Milliseconds.ToString());
-                    
-                    this.tb_output.Text += Environment.NewLine+"Data was inserted to DB. It taked " + ts.Minutes.ToString() + ":" + ts.Seconds + ":" + ts.Milliseconds.ToString();
+                    _ = Ado_netDbManager.InsertMessagesAsync(this.messages);
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        stopwatch.Stop();
+                        TimeSpan ts = stopwatch.Elapsed;
+                        MessageBox.Show("Data was inserted to DB. It taked " + ts.Minutes.ToString() + ":" + ts.Seconds + ":" + ts.Milliseconds.ToString());
+                        this.tb_output.Text += Environment.NewLine + "Data was inserted to DB. It taked " + ts.Minutes.ToString() + ":" + ts.Seconds + ":" + ts.Milliseconds.ToString();
+                    });     
                 }
                 else
                 {
