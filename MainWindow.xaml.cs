@@ -76,7 +76,7 @@ namespace Codium
             {
                 if (!Ado_netDbManager.WasDataInserted)
                 {
-                    Ado_netDbManager.InsertMessages(this.messages);
+                    Ado_netDbManager.InsertMessagesAsync(this.messages);
                     stopwatch.Stop();
                     TimeSpan ts = stopwatch.Elapsed;
                     MessageBox.Show("Data was inserted to DB. It taked " + ts.Minutes.ToString() + ":" + ts.Seconds + ":" + ts.Milliseconds.ToString());

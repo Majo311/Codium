@@ -1,4 +1,5 @@
 ﻿using Codium.Models;
+using Dasync.Collections;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -8,6 +9,8 @@ using System.Data.Common;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Xml;
 
@@ -144,7 +147,7 @@ namespace Codium
 
         }
 
-        public void InsertMessages(IList<Message> messages) 
+        public async Task  InsertMessagesAsync(IList<Message> messages) 
         {
             using (SqlConnection myConn = new SqlConnection(this.ConnectionString))
             {
@@ -164,17 +167,19 @@ namespace Codium
                         command.CommandText=("Insert into [Codium_Data].[dbo].[Events](MessageID,ProviderEventID,EventName,EventDate)" +
                                               "Values('"+ message.MessageID+"','"+message.Event.ProviderEventID+"','"+ message.Event.EventName+"','"+ eventDateTime + "')");
                         command.ExecuteNonQuery();
-                        foreach (Odd o in message.Event.OddsList)
+                        //use the ParallelForEachAsync extension method from AsyncEnumerator NuGet https://www.nuget.org/packages/AsyncEnumerator
+                        await message.Event.OddsList.ParallelForEachAsync(async o=>
                         {
-                            string oddInsertQuery = "Insert into [Codium_Data].[dbo].[Odds](ProviderOddsID,MessageID,OddsName,OddsRate,Status) Values";
-                            oddInsertQuery += "('" + o.ProviderOddsID + "','" +
-                                                     message.MessageID+"','"+
-                                                     o.OddsName + "','" + 
-                                                     string.Format(new System.Globalization.CultureInfo("en-GB"), "{0:F}", o.OddsRate) + "','" + 
-                                                     o.Status + "')";
-                            command.CommandText = oddInsertQuery;
-                            command.ExecuteNonQuery();
-                        }
+                                string oddInsertQuery = "Insert into [Codium_Data].[dbo].[Odds](ProviderOddsID,MessageID,OddsName,OddsRate,Status) Values";
+                                oddInsertQuery += "('" + o.ProviderOddsID + "','" +
+                                                         message.MessageID + "','" +
+                                                         o.OddsName + "','" +
+                                                         string.Format(new System.Globalization.CultureInfo("en-GB"), "{0:F}", o.OddsRate) + "','" +
+                                                         o.Status + "')";
+                                command.CommandText = oddInsertQuery;
+                                command.ExecuteNonQuery();
+                            
+                        });
                     }
                     sqlTran.Commit();
                     this.WasDataInserted = true;
@@ -195,8 +200,10 @@ namespace Codium
                     }
                     this.WasDataInserted = false;
                 }
-                
-               
+                finally 
+                {
+                    myConn.Close(); 
+                }  
             }
         }
     }
