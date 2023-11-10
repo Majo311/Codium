@@ -12,6 +12,8 @@ using System.Linq;
 using System.Windows;
 using System.ComponentModel;
 using System.Windows.Documents;
+using System.Threading.Tasks;
+using System.Xml;
 
 namespace Codium
 {
@@ -63,15 +65,16 @@ namespace Codium
             }
         }
 
-        private void btn_SaveToDb_Click(object sender, RoutedEventArgs e)
+        private async void btn_SaveToDb_Click(object sender, RoutedEventArgs e)
         {
             Ado_netDbManager Ado_netDbManager = Ado_netDbManager.GetInstance(this.connectionString);
             if (Ado_netDbManager.CreateDatabaseIfNotExist(database) && Ado_netDbManager.CreateTablesIfNotExist())
             {
                 if (!Ado_netDbManager.WasDataInserted)
                 {
-                    var finishTime=Ado_netDbManager.InsertMessages(this.messages);
-                    tb_output.Text +=new LineBreak()+ "Inserting to db taked : "+ finishTime.Result.TotalMinutes.ToString()+" min and "+ finishTime.Result.TotalSeconds+"sec";
+                    tb_output.Text += System.Environment.NewLine+"Inserting to Db is runing ! Plase wait ...";
+                   TimeSpan finishTime = await Ado_netDbManager.InsertMessages(this.messages);
+                    tb_output.Text += System.Environment.NewLine + "Inserting to db taked : " + finishTime.Minutes.ToString() + " min and " + finishTime.Seconds + "sec"; ;
                 }
                 else
                 {

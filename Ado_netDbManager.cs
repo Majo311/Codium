@@ -150,10 +150,10 @@ namespace Codium
 
         public async Task<TimeSpan> InsertMessages(IList<Message> messages) 
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            await Task<TimeSpan>.Run(() =>
+            return await Task<TimeSpan>.Run(() =>
             {
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
                 using (SqlConnection myConn = new SqlConnection(this.ConnectionString))
                 {
                     myConn.Open();
@@ -199,9 +199,9 @@ namespace Codium
                         myConn.Close();
                     }
                 }
+                stopwatch.Stop();
+                return stopwatch.Elapsed;
             });
-            stopwatch.Stop();
-            return stopwatch.Elapsed;
         }
     }
 }
