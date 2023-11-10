@@ -5,6 +5,7 @@ namespace Codium.Models
 {
     public class Message
     {
+        public int Id { get; set; }
         public string MessageID { get; set; }
         public string GeneratedDate { get; set; }
         public Event Event { get; set; }

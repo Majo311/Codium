@@ -10,6 +10,7 @@ namespace Codium.Models
     }
     public class Odd
     {
+        public int Id { get; set; }
         public int ProviderOddsID { get; set; }
         public string MessageID { get; set; }
         public string OddsName {  get; set; }

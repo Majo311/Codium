@@ -29,12 +29,6 @@ namespace Codium
         public MainWindow()
         {
             InitializeComponent();
-            this.worker.ProgressChanged += Worker_ProgressChanged;
-            this.worker.DoWork += Worker_InsertToDb;
-        }
-        private void Worker_ProgressChanged(object? sender, ProgressChangedEventArgs e)
-        {
-            throw new NotImplementedException();
         }
 
         private void btn_OpenFile_Click(object sender, RoutedEventArgs e)
@@ -67,31 +61,21 @@ namespace Codium
                 } 
             }
         }
-        private void Worker_InsertToDb(object? sender, DoWorkEventArgs e)
+
+        private void btn_SaveToDb_Click(object sender, RoutedEventArgs e)
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
             Ado_netDbManager Ado_netDbManager = Ado_netDbManager.GetInstance(this.connectionString);
             if (Ado_netDbManager.CreateDatabaseIfNotExist(database) && Ado_netDbManager.CreateTablesIfNotExist())
             {
                 if (!Ado_netDbManager.WasDataInserted)
                 {
                     Ado_netDbManager.InsertMessages(this.messages);
-                    stopwatch.Stop();
-                    TimeSpan ts = stopwatch.Elapsed;
-                    MessageBox.Show("Data was inserted to DB. It taked " + ts.Minutes.ToString() + ":" + ts.Seconds + ":" + ts.Milliseconds.ToString());
-                    
-                    this.tb_output.Text += Environment.NewLine+"Data was inserted to DB. It taked " + ts.Minutes.ToString() + ":" + ts.Seconds + ":" + ts.Milliseconds.ToString();
                 }
                 else
                 {
                     MessageBox.Show("Data wasn't inserted to Db");
                 }
             }
-        }
-        private void btn_SaveToDb_Click(object sender, RoutedEventArgs e)
-        {
-           this.worker.RunWorkerAsync();
         }
     }
 }
