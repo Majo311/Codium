@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.ComponentModel;
+using System.Windows.Documents;
 
 namespace Codium
 {
@@ -69,7 +70,8 @@ namespace Codium
             {
                 if (!Ado_netDbManager.WasDataInserted)
                 {
-                    Ado_netDbManager.InsertMessages(this.messages);
+                    var finishTime=Ado_netDbManager.InsertMessages(this.messages);
+                    tb_output.Text +=new LineBreak()+ "Inserting to db taked : "+ finishTime.Result.TotalMinutes.ToString()+" min and "+ finishTime.Result.TotalSeconds+"sec";
                 }
                 else
                 {

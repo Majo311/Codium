@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Threading;
@@ -147,9 +148,11 @@ namespace Codium
 
         }
 
-        public async Task InsertMessages(IList<Message> messages) 
+        public async Task<TimeSpan> InsertMessages(IList<Message> messages) 
         {
-           await  Task.Run(() =>
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            await Task<TimeSpan>.Run(() =>
             {
                 using (SqlConnection myConn = new SqlConnection(this.ConnectionString))
                 {
@@ -197,6 +200,8 @@ namespace Codium
                     }
                 }
             });
+            stopwatch.Stop();
+            return stopwatch.Elapsed;
         }
     }
 }
