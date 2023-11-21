@@ -1,0 +1,64 @@
+﻿Barbara Rigasová <barbara.rigasova@fsm.group>
+
+Ďakujem 
+S pozdravom
+Mgr. Barbara Rigasová
+Talent Sourcer
+
+ZADANIE:
+
+Na vstupe su data (cely zoznamu sprav, udalosti a ich oddov je v prilohe - zdrojovy_dokument.zip rozbalit manualne a pracovavat so suborom zdrojovy_dokument.json) v nasledujucom formate:
+
+[
+              {
+                             "MessageID": "d5787924-d080-40d4-bfad-f0f2e09e6abe",
+                             "GeneratedDate": "2022-10-10T12:44:44.9304711+02:00",
+                             "Event": {
+                                           "ProviderEventID": 1499420517,
+                                           "EventName": "Team B vs. Team H",
+                                           "EventDate": "2022-10-18T00:30:00",
+                                           "OddsList": [
+                                                          {
+                                                                        "ProviderOddsID": 764331995,
+                                                                        "OddsName": "Home",
+                                                                        "OddsRate": 1.981,
+                                                                        "Status": "suspended"
+
+                                         },
+
+                                                          {
+
+                                                                        "ProviderOddsID": 1635670100,
+
+                                                                        "OddsName": "Draw",
+
+                                                                        "OddsRate": 2.56,
+
+                                                                        "Status": "active"
+
+                                                          },
+
+                                                          {
+
+                                                                        "ProviderOddsID": 820885954,
+
+                                                                        "OddsName": "Away",
+
+                                                                        "OddsRate": 1.454,
+
+                                                                        "Status": "active"
+
+                                                          },..
+
+                                           ]….
+
+ 
+
+
+Cielom je implementovat (napr. konzolovu) aplikaciu (.net framework alebo .net core), ktora dokaze ulozit sportove udalosti (dalej len udalosti) a oddy do DB (MS SQL) co najrychlejsie, pri dodrzani poradia spracovania per udalost (udalosti medzi sebou sa mozu predbiehat, ale vsetky spravy k jednej udalosti musia byt spracovane v poradi v akom su v zdrojovom dokumente) s co najmensou zatazou na DB.
+Jednotlive udalosti je mozne loadnut zo suboru a rozparsovat naraz, potom by vsak mala nasledovat iteracia per udalost (simulacia prijatia kazdej udalosti samostatne) bez akehokolvek radenia daneho zoznamu. V zdrojovom dokumente sa niektore udalosti opakuju viackrat (je potrebne urobit update len zmenenych dat). Na udalosti moze dochadzat k zmenam EventDate. Na oddch k zmenam Status a OddsRate. V cielovej DB by mala mat kazda entita vlastne ID (auto increment).
+Kazda sportova udalost bude v db len raz, jej unikatny identifikator je ProviderEventID (rovnako aj oddy - ProviderOddsID). Pri spracovani kazdej udalosti (tesne pred ulozenim do DB) dochadza k volaniu na externe API, ktore je potrebne simulovat pozastavenim vlakna nahodne na 0 az 10 sekund. Pre dosiahnutie co najlepsich vysledkov treba vyuzit paralelizmus. nieje nutne riesit situaciu vypnutia aplikacie pocas spracovavania dat.
+
+Pozor, cielom nieje len ulozit data do DB, ale urobit to co najrychlejsie (paralelne). V zdrojovom subore je zoznam sprav, kazda sprava obsahuje prave jednu udalost. Udalost identifikuje ProviderEventID, cize vsetky spravy k jednej udalosti (podla ProviderEventID) musia byt spracovavane v poradi v akom su v subore. Na poradi spracovania udalosti ale nezalezi (rozne udalosti medzi sebou mozu predbiehat resp. spracovavat paralelne). Taktiez je potrebne vhodne zvolit (doraz na vykon) sposob ukladania dat do DB.
+
+Pomocka: doporucujem pouzit queue.
