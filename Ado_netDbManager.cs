@@ -169,8 +169,17 @@ namespace Codium
                             command.CommandText = "Select max(Id) from [Codium_Data].[dbo].[Messages]";
                             int message_Id = (int)(command.ExecuteScalar());
                             eventDateTime = new DateTime();
-                            command.CommandText = ("Insert into [Codium_Data].[dbo].[Events](Message_Id,ProviderEventID,EventName,EventDate)" +
-                                                  "Values('" + message_Id.ToString() + "','" + message.Event.ProviderEventID + "','" + message.Event.EventName + "','" + eventDateTime + "')");
+                            command.CommandText = "Select Count(ProviderEventID) from [Codium_Data].[dbo].[Events]";
+                            int eventId= (int)(command.ExecuteScalar());
+                            if (eventId == 0)
+                            {
+                                command.CommandText = ("Insert into [Codium_Data].[dbo].[Events](Message_Id,ProviderEventID,EventName,EventDate)" +
+                                                      "Values('" + message_Id.ToString() + "','" + message.Event.ProviderEventID + "','" + message.Event.EventName + "','" + eventDateTime + "')");
+                            }
+                            else
+                            {
+                                command.CommandText = "Update [Codium_Data].[dbo].[Events] set EventDate='"+ eventDateTime+"' where [Id]='" + message_Id.ToString()+"'";
+                            }
                             Random random = new Random();
                             Thread.Sleep(random.Next(10));//simulation of extern API 
                             command.ExecuteNonQuery();
