@@ -26,7 +26,6 @@ namespace Codium
         private string connectionString = "Server=.\\SQLEXPRESS;Integrated security=SSPI;database=master";
         private string database = "C:\\Codium_data.mdf";
         private List<Message> messages = new List<Message>();
-        BackgroundWorker worker=new BackgroundWorker();
 
       
         public MainWindow()

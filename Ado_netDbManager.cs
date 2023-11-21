@@ -150,7 +150,7 @@ namespace Codium
 
         public async Task<TimeSpan> InsertMessages(IList<Message> messages) 
         {
-            return await Task<TimeSpan>.Run(() =>
+            return await Task<TimeSpan>.Run(async () =>
             {
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
@@ -176,17 +176,20 @@ namespace Codium
                             command.ExecuteNonQuery();
                             command.CommandText = "Select max(Id) from [Codium_Data].[dbo].[Events]";
                             int event_Id = (int)(command.ExecuteScalar());
-                            foreach (Odd o in message.Event.OddsList)
+                            await Parallel.ForEachAsync(message.Event.OddsList,async (o, cancellationToken) =>
                             {
-                                string oddInsertQuery = "Insert into [Codium_Data].[dbo].[Odds](ProviderOddsID,Event_Id,OddsName,OddsRate,Status) Values";
-                                oddInsertQuery += "('" + o.ProviderOddsID + "','" +
-                                                         event_Id.ToString() + "','" +
-                                                         o.OddsName + "','" +
-                                                         string.Format(new System.Globalization.CultureInfo("en-GB"), "{0:F}", o.OddsRate) + "','" +
-                                                         o.Status + "')";
-                                command.CommandText = oddInsertQuery;
-                                command.ExecuteNonQuery();
-                            }
+                                lock (_locker)
+                                {
+                                    string oddInsertQuery = "Insert into [Codium_Data].[dbo].[Odds](ProviderOddsID,Event_Id,OddsName,OddsRate,Status) Values";
+                                    oddInsertQuery += "('" + o.ProviderOddsID + "','" +
+                                                             event_Id.ToString() + "','" +
+                                                             o.OddsName + "','" +
+                                                             string.Format(new System.Globalization.CultureInfo("en-GB"), "{0:F}", o.OddsRate) + "','" +
+                                                             o.Status + "')";
+                                    command.CommandText = oddInsertQuery;
+                                    command.ExecuteNonQuery();
+                                }
+                            });
                         }
                         this.WasDataInserted = true;
                     }

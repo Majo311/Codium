@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Windows.Documents;
 
@@ -12,13 +13,13 @@ namespace Codium.Models
         public int ProviderEventID { get; set; }
         public string EventName { get; set; }
         public string EventDate { get; set; }
-        public List<Odd> OddsList { get; set; }
+        public ConcurrentQueue<Odd> OddsList { get; set; }
         public Event(int ProviderEventID, string EventName, string EventDate)
         {
             this.ProviderEventID = ProviderEventID;
             this.EventName = EventName;
             this.EventDate = EventDate;
-            //this.OddsList = OddsList;
+            this.OddsList = new ConcurrentQueue<Odd>();
         }
     }
 }

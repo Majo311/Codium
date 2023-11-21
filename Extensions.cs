@@ -13,10 +13,11 @@ namespace Codium
         {
             Event result = new Event((int)JToken["ProviderEventID"], JToken["EventName"].ToString(), JToken["EventDate"].ToString());
             JArray array = (JArray)JToken["OddsList"];
-            result.OddsList = array.Select(x => new Odd((int)x["ProviderOddsID"], 
-                                                               x["OddsName"].ToString(), 
-                                                               (float)x["OddsRate"], 
+            List<Odd> oddList = array.Select(x => new Odd((int)x["ProviderOddsID"],
+                                                               x["OddsName"].ToString(),
+                                                               (float)x["OddsRate"],
                                                                x["Status"].ToString())).ToList();
+            result.OddsList = new System.Collections.Concurrent.ConcurrentQueue<Odd>(oddList);
             return result;
         }
     }
